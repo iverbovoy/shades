@@ -40,6 +40,18 @@ omarchy restart shell
 The plugin is a background service plus a bar widget. A click on the widget
 opens the panel; a middle click turns the wall on and off.
 
+### Your place
+
+The sun and the moon are worked out for the place set for Omarchy's weather.
+If none is set there, the plugin guesses from the time zone, which gets the
+hour of the day right and little else, and it does not ask for the weather
+of a place it has guessed. To set your own:
+
+```bash
+omarchy-shell shades set latitude 48.86
+omarchy-shell shades set longitude 2.35
+```
+
 ### Requirements
 
 - Omarchy 4 with its Quickshell shell (`omarchy-shell`) on Hyprland. The
@@ -122,7 +134,8 @@ background.
 
 Your own theme is a file `~/.config/shades/themes/<id>.json` with the keys
 documented at the top of [`Themes.js`](Themes.js); anything left out comes
-from `plaster`.
+from `plaster`. Theme files are read when the shell starts:
+`omarchy restart shell` after adding one.
 
 ## A room on the move
 
@@ -149,7 +162,7 @@ edited.
 | `enabled` | show the wall or leave the stock background |
 | `theme` | one of the themes above, or your own |
 | `motion` | one of the motions above; empty = a room that stands still |
-| `latitude`, `longitude` | where the sun is worked out for; empty = the Omarchy weather location |
+| `latitude`, `longitude` | where the sun is worked out for; empty = the Omarchy weather location, and where none is set, a guess from the time zone (see below) |
 | `brightness` | strength of the sun's and the moon's light; 1 is as the theme has it |
 | `softness` | how soft the edges of the shadows are; 1 is as the sky makes them, less is sharper |
 | `tint` | colour of that light: `"#rrggbb"`, or `accent` for the accent of the Omarchy theme; empty = the theme's own |
