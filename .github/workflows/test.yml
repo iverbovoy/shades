@@ -1,0 +1,22 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Sun and moon
+        run: node tests/astronomy.test.js
+      # the day a sunrise belongs to depends on the zone the tests run in
+      - name: Sun and moon, far from Greenwich
+        run: TZ=Pacific/Auckland node tests/astronomy.test.js
+      - name: Themes and weather
+        run: node tests/modules.test.js

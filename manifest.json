@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "verbovoy.shades",
+  "name": "Shades",
+  "version": "0.1.0",
+  "author": "verbovoy",
+  "description": "Live wallpaper of sunlight on a wall that follows the real sun",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Shades",
+    "description": "Sunlight wallpaper controls",
+    "category": "Appearance",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
