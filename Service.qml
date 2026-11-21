@@ -804,28 +804,21 @@ Item {
     onFileChanged: reload()
   }
 
-  // Omarchy does not say when its theme or background changes, nor when a
-  // notification comes in, but each leaves a file behind: the folders are
-  // watched. Without inotify-tools the theme is still looked at once a minute.
+  // Omarchy does not say when its theme or background changes, but each
+  // leaves a file behind: the folder is watched. Without inotify-tools the
+  // theme is still looked at once a minute.
   Process {
     id: watchProc
     running: config.enabled
-    command: ["sh", "-c", 'set --; for d in "$HOME/.local/state/omarchy/current" "$HOME/.local/state/omarchy/notifications"; do '
-      + '[ -d "$d" ] && set -- "$@" "$d"; done; '
+    command: ["sh", "-c", 'd="$HOME/.local/state/omarchy/current"; [ -d "$d" ] || exit 0; '
       // a shell that is killed leaves its children behind: someone looks in
       // now and then and ends the watch with it. The watch itself takes this
       // process over, so that stopping it here stops the watch and no other.
       + '( while kill -0 $PPID 2>/dev/null && kill -0 $$ 2>/dev/null; do sleep 10; done; kill $$ 2>/dev/null ) >/dev/null 2>&1 & '
-      + 'exec inotifywait -m -q -e create,moved_to,close_write --format %w%f "$@"']
+      + 'exec inotifywait -m -q -e create,moved_to,close_write --format %w%f "$d"']
     stdout: SplitParser {
-      onRead: function(line) { root.noticed(String(line || "")) }
+      onRead: function(line) { systemSettle.restart() }
     }
-  }
-
-  function noticed(path) {
-    if (path.indexOf("/omarchy/current/") >= 0) { systemSettle.restart(); return }
-    // a notification on screen is a file of its own: a bird comes to the sill
-    if (/\.json$/.test(path) && config.notify && !visit.running) receive("bird")
   }
 
   Timer { id: systemSettle; interval: 120; onTriggered: root.refreshSystem() }
@@ -866,49 +859,6 @@ Item {
     && UPower.displayDevice.percentage < 0.2
   // a room on the move needs more frames to move smoothly, and so does a light crossing the wall
   readonly property int fps: Math.max(1, onBattery ? Math.min(config.fps, 10) : motion === "racer" ? Math.max(config.fps, 60) : moving || passing ? Math.max(config.fps, 30) : config.fps)
-
-  // --- visitors ----------------------------------------------------------------
-
-  // Now and then a bird lands on the sill for a while, or someone walks past
-  // outside. 0 = bird, 1 = walker; `visitAt` runs 0..1 over the visit.
-  property int visitKind: 0
-  property real visitAt: 0
-  property real visitSpot: 0
-  property int visitHeading: 1
-
-  NumberAnimation { id: visit; target: root; property: "visitAt"; from: 0; to: 1 }
-
-  function receive(who) {
-    if (who === "car") { passBy(); return }
-    if (moving) return
-    if (who !== "bird" && who !== "walker") who = Math.random() < 0.6 ? "bird" : "walker"
-    visitKind = who === "bird" ? 0 : 1
-    visitSpot = -0.22 + 0.3 * Math.random()
-    visitHeading = Math.random() < 0.5 ? 1 : -1
-    visit.duration = who === "bird" ? 25000 + 20000 * Math.random() : 7000 + 3000 * Math.random()
-    visit.restart()
-  }
-
-  // x, y in the window, kind, presence: the bird hops in from above and
-  // leaves the same way, the walker crosses from one side to the other
-  readonly property vector4d visitor: {
-    if (!visit.running) return Qt.vector4d(0, 0, 0, 0)
-    if (visitKind === 0) {
-      var away = Math.max(smooth(0.04, 0, visitAt), smooth(0.96, 1, visitAt))
-      return Qt.vector4d(visitSpot + 0.5 * away, 0.9 * away, 0, 1)
-    }
-    return Qt.vector4d(visitHeading * (-0.55 + 1.1 * visitAt), -0.06, 1, 1)
-  }
-
-  Timer {
-    running: config.enabled && config.visitors && root.lit && !root.moving
-    repeat: true
-    interval: 120000
-    onTriggered: {
-      interval = 90000 + 240000 * Math.random()
-      if (!visit.running) root.receive("")
-    }
-  }
 
   // --- the desktop's own windows ----------------------------------------------
 
@@ -1012,7 +962,6 @@ Item {
       property bool windowShadows: false // the desktop's windows cast shadows on the wall
       property real windowHeight: 0.05  // how far they float in front of it, in wall heights
       property string blindsFollow: "none" // "none" | "volume" | "battery": how open the blinds stand
-      property bool visitors: true      // a bird on the sill, someone walking past, now and then
       property bool headlights: true    // at night the lights of a passing car cross the wall
       property bool trail: false        // the wall keeps a trace of where the sun has been today
       property bool eclipses: true      // real solar eclipses dim the sun and turn tree light into crescents
@@ -1020,7 +969,6 @@ Item {
       property bool pauseWhenCovered: true // hold still while windows cover the wall
       property bool saveBattery: true  // move slower on battery, hold still when it runs low
       property bool nightlight: false  // warm the screen as the real sun sets
-      property bool notify: true       // a bird lands on the sill when a notification comes in
       property bool quiet: true        // the blinds close while notifications are silenced
       property string motion: ""       // the room travels: lift | train | ship | racer
       property bool perTheme: true     // every Omarchy theme keeps a scene of its own
@@ -1124,8 +1072,8 @@ Item {
       root.stepSystemTheme(direction < 0 ? -1 : 1)
       return root.pendingTheme
     }
-    // have a visitor now: bird | walker | car
-    function visit(who: string): void { root.receive(who) }
+    // a car goes by now, its headlights across the wall (at night)
+    function car(): void { root.passBy() }
     // stop the lift at the next floor, or send it on again
     function hold(): string {
       if (root.motion !== "lift") return "no lift"
@@ -1172,7 +1120,6 @@ Item {
     if (passing) return true
     if (!lit) return false
     if (config.tree) return true
-    if (visit.running && visitKind === 1) return true
     if (drift > 0 || raining) return true
     if (config.dust && elevation > 0 && clouds < 0.5) return true
     return false
@@ -1217,7 +1164,7 @@ Item {
   // What makes up a scene: kept for every Omarchy theme and brought back with
   // it. A theme can come with one of its own, a shades.json with these keys.
   readonly property var sceneKeys: ["theme", "bar", "window", "brightness", "softness", "tint", "windowSize", "windowCount",
-    "blindsFollow", "tree", "visitors", "trail", "text", "textLight", "motion"]
+    "blindsFollow", "tree", "trail", "text", "textLight", "motion"]
   property var themeScene: null        // what the theme in use brought along, if anything
 
   function scene() {
@@ -1610,7 +1557,6 @@ Item {
         property color barTint: Commons.Color.bar.background
         property real slatOpen: root.slatOpen
         property real shut: 0
-        property vector4d visitor: root.moving ? Qt.vector4d(0, 0, 0, 0) : root.visitor
         property real trailAmt: config.trail && !root.moving ? root.day : 0
         property real eclipseAmt: root.eclipse
         property vector4d w0: frame.casters[0]

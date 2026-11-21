@@ -32,7 +32,7 @@ plain() {
   ipc set overcast '"off"'; ipc set rain false; ipc set motion '""'
   ipc set brightness 1; ipc set softness 1; ipc set tint '""'
   ipc set blindsFollow '"none"'; ipc set windowShadows false
-  ipc set visitors false; ipc set headlights false; ipc set text false
+  ipc set headlights false; ipc set text false
 }
 plain >/dev/null
 sleep 4.5 # the clouds take their time to part

@@ -70,7 +70,6 @@ layout(std140, binding = 0) uniform buf {
   // It is far off and has its own way across the wall
   vec4 geo4; vec4 col4;
   vec4 white;      // linear colour of the wall in full sun
-  vec4 visitor;    // someone at the window: x, y, kind (0 bird, 1 walker), 0..1 presence
   // the shell's bar lies over the wall: x = edge (0 none, 1 top, 2 bottom, 3 left,
   // 4 right), y = its thickness as a share of that side, z = 1 when it is tinted
   vec4 bar;
@@ -169,12 +168,6 @@ float lattice(vec2 w, float open, float blur) {
   return 1.0 - smoothstep(-b, b, min(star, diamond));
 }
 
-float capsule(vec2 p, vec2 a, vec2 b, float r) {
-  vec2 pa = p - a, ba = b - a;
-  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-  return length(pa - ba * h) - r;
-}
-
 // Coverage of the lettering at window position uv, blurred by r (in uv).
 float lettering(vec2 uv, vec2 r) {
   float lod = log2(max(1.0, max(r.x, r.y) * 1024.0 * 0.35));
@@ -257,46 +250,6 @@ float rain(vec2 w) {
   vec2 r = vec2(w.x * 38.0, w.y * 3.0 + time * 0.22);
   r.x += 0.6 * vnoise(vec2(w.x * 9.0, w.y * 5.0 + time * 0.15));
   return 0.5 * (beads - 0.47) + 1.1 * (fbm(r) - 0.47);
-}
-
-// A small bird perched on the sill, facing right (negative inside); q is in
-// units of its height with the sill at y = 0.
-float birdShape(vec2 q) {
-  float body = (length((q - vec2(0.0, 0.42)) / vec2(0.42, 0.30)) - 1.0) * 0.30;
-  float head = length(q - vec2(0.30, 0.78)) - 0.17;
-  float beak = capsule(q, vec2(0.44, 0.78), vec2(0.60, 0.74), 0.025);
-  float tail = capsule(q, vec2(-0.32, 0.36), vec2(-0.74, 0.20), 0.07);
-  float legs = min(capsule(q, vec2(-0.04, 0.16), vec2(-0.06, 0.0), 0.018), capsule(q, vec2(0.10, 0.16), vec2(0.10, 0.0), 0.018));
-  return min(min(body, head), min(min(beak, tail), legs));
-}
-
-// Someone walking past outside, in units of their height, feet at y = 0.
-float walkerShape(vec2 q) {
-  float stride = sin(time * 5.0);
-  float head = length(q - vec2(0.0, 0.90)) - 0.085;
-  float torso = capsule(q, vec2(0.0, 0.76), vec2(0.0, 0.48), 0.085);
-  float legA = capsule(q, vec2(0.0, 0.48), vec2(0.16 * stride, 0.0), 0.05);
-  float legB = capsule(q, vec2(0.0, 0.48), vec2(-0.16 * stride, 0.0), 0.05);
-  float armA = capsule(q, vec2(0.0, 0.72), vec2(-0.13 * stride, 0.44), 0.035);
-  float armB = capsule(q, vec2(0.0, 0.72), vec2(0.13 * stride, 0.44), 0.035);
-  return min(min(head, torso), min(min(legA, legB), min(armA, armB)));
-}
-
-// Shadow of whoever is at the window, at upright window position w (sill at
-// y = 0).
-float visitorShadow(vec2 w, float e) {
-  vec2 q = w - visitor.xy;
-  float d, blur;
-  if (visitor.z < 0.5) {
-    float size = 0.09;
-    d = birdShape(q / size) * size;
-    blur = e;
-  } else {
-    float size = 0.62;
-    d = walkerShape(q / size) * size;
-    blur = min(e * 5.0 + 0.006, 0.03); // out in the street: soft
-  }
-  return visitor.w * (1.0 - smoothstep(-blur, blur, d));
 }
 
 float inWindow(vec2 q, vec4 w, float blur) {
@@ -473,9 +426,6 @@ float shed(vec3 p, vec4 geo) {
   win *= mix(1.0, 1.0 - smoothstep(1.0 - 5.0 * e, 1.0 + 5.0 * e, dot(ac, ac)), archAmt);
 
   if (castAmt > 0.0) past *= 1.0 - 0.75 * desktopShadow(p, sunK * vec2(1.0, geo.y), soft);
-
-  // a visitor comes to the first window
-  if (visitor.w > 0.0 && nth < 0.5) past *= 1.0 - 0.85 * visitorShadow(vec2(sill.x, qy - WIN_Y.x), min(e + 0.0008, 0.006));
 
   glassTint = vec3(1.0);
   if (stainAmt > 0.0) {

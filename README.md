@@ -46,8 +46,8 @@ opens the panel; a middle click turns the wall on and off.
   plugin was written and is used on Omarchy 4.0; it has not been tried on
   4.5 yet.
 - `curl`, for the weather. Without it the sky is always clear.
-- `inotify-tools`, to follow a change of theme or background at once and to
-  hear of notifications. Without it a change is noticed within a minute.
+- `inotify-tools`, to follow a change of theme or background at once.
+  Without it a change is noticed within a minute.
 - `hyprsunset`, only for `nightlight`.
 
 Nothing is built on install. `qt6-shadertools` is needed only to change the
@@ -100,7 +100,7 @@ below are put by when you leave a theme and brought back when you return. A
 theme can bring a scene along for those who have not set one: a `shades.json`
 next to its `colors.toml` with any of `theme`, `bar`, `window`, `brightness`,
 `softness`, `tint`, `windowSize`, `windowCount`, `blindsFollow`, `tree`,
-`visitors`, `trail`, `text`, `textLight`, `motion`.
+`trail`, `text`, `textLight`, `motion`.
 
 ## Themes
 
@@ -136,7 +136,7 @@ moves is the room under it.
 | `ship` | the patch rises, sinks and leans with the swell |
 | `racer` | a racing car, lap after lap. Every corner turns the car under the sun, so the light comes in at another angle and stays there down the next straight; the corners are long and the patch crosses the wall with them, leaning a little the way the car is pressed. It lifts for the corners and gathers speed out of them. The posts of the catch fence streak across the patch, the gaps between the stands come as flashes, two bridges take the sun for an instant, and in the tunnel its lamps cross the wall one after another until the car comes out into a day too bright for a moment |
 
-While the room travels no tree or visitor keeps up with it, and the wall is
+While the room travels no tree keeps up with it, and the wall is
 drawn at 30 frames a second or more, 60 in the racing car.
 
 ## Settings
@@ -164,7 +164,6 @@ edited.
 | `windowCount` | how many stand in a row along the side wall, 1 to 4, a pier between each two; more of them are each narrower |
 | `blindsFollow` | `none`, `volume` or `battery`: the blinds stand as open as the volume is up or the battery is full; `none` leaves them two thirds open |
 | `tree` | a tree outside the window |
-| `visitors` | now and then a bird lands on the sill or someone walks past |
 | `headlights` | at night a car goes by now and then and the light of its headlamps crosses the wall |
 | `dust` | motes in the beam |
 | `trail` | the wall stays a shade warmer where the patch has already been today |
@@ -180,7 +179,6 @@ edited.
 | `pauseWhenCovered` | hold still while windows cover the wall on every monitor |
 | `saveBattery` | on battery the wall moves at 10 frames a second at most and holds still below 20% |
 | `nightlight` | the screen warms from 6500K to 4000K as the real sun sets and cools as it rises (off by default; it starts `hyprsunset` if need be) |
-| `notify` | a bird lands on the sill when a notification comes in |
 | `quiet` | the blinds close while notifications are silenced |
 | `perTheme` | every Omarchy theme keeps a scene of its own |
 
@@ -202,7 +200,7 @@ omarchy-shell shades get theme         # what a setting is now
 omarchy-shell shades time 8.5          # preview 08:30
 omarchy-shell shades follow            # back to the real time
 omarchy-shell shades preview           # the hour being previewed; negative = the real time
-omarchy-shell shades visit car         # a visitor now: bird | walker | car (its headlights, at night)
+omarchy-shell shades car               # a car goes by now: its headlights, at night
 omarchy-shell shades hold              # stop the lift at the next floor, or send it on
 omarchy-shell shades eclipse 0.8       # preview a solar eclipse; -1 returns to the real sky
 omarchy-shell shades snapshot /tmp/wall.png
@@ -233,9 +231,9 @@ degree, every 15 minutes. That is its only network request, and it is skipped
 when the weather is not used (`overcast` not `auto`, `rain` off and no weather
 placeholder in the text) and when no location is known.
 
-To hear of a new theme, background or notification it watches two folders of
-Omarchy's state with `inotifywait`; of a notification it takes only that a
-file appeared, not what it says.
+To hear of a new theme or background it watches a folder of Omarchy's state
+with `inotifywait`. Whether notifications are silenced it reads from the
+shell's own file, for `quiet`; it reads nothing else of them.
 
 ## Cost
 
