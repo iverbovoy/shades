@@ -40,6 +40,19 @@ omarchy restart shell
 The plugin is a background service plus a bar widget. A click on the widget
 opens the panel; a middle click turns the wall on and off.
 
+### Remove
+
+```bash
+omarchy-shell shades set bar '""'      # only if the bar was made clear or tinted: gives it its background back
+omarchy plugin remove verbovoy.shades
+omarchy restart shell
+rm -r ~/.config/shades                 # the settings, if you do not want them kept
+```
+
+The plugin keeps nothing outside its own folder and `~/.config/shades`. The
+one thing of Omarchy's it changes is the background of the bar, and only when
+a bar style is picked in the panel.
+
 ### Your place
 
 The sun and the moon are worked out for the place set for Omarchy's weather.
