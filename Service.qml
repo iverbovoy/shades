@@ -112,6 +112,7 @@ Item {
   onSimHourChanged: refresh()
   Component.onCompleted: {
     mend()
+    askPlayer()
     shownTheme = config.theme
     shownCount = wantedCount
     warm()
@@ -199,6 +200,7 @@ Item {
         : moving ? ", " + motion : "")
       + (config.nightlight ? ", screen " + warmth + "K" : "")
       + (onBattery ? ", on battery" : "") + (hushed ? ", hushed" : "")
+      + (yielded ? ", stepped aside for Omarchy's video" : "")
   }
 
   // --- theme ----------------------------------------------------------------
@@ -346,13 +348,17 @@ Item {
 
   // The wall is the only thing under the shell's bar, so with the bar's own
   // background off the wall can draw it: clear, or tinted.
-  // The bar is the shell's; we read where it is and ask for its transparency.
+  // The bar is the shell's; we read where it is and ask for it to be see-through.
+  // Omarchy keeps the bar's background as opaque, glassy or none; before 4.5
+  // it was a plain `transparent`.
   readonly property var barStyles: ["", "clear", "tint"]
   readonly property var shellBar: {
     try { return JSON.parse(shellFile.text() || "{}").bar || {} } catch (e) { return {} }
   }
   readonly property string barEdge: shellBar.position || "top"
-  readonly property bool barShown: config.enabled && config.bar !== "" && shellBar.transparent === true
+  readonly property string barBackground: shellBar.background || (shellBar.transparent === true ? "none" : "opaque")
+  readonly property bool barClear: barBackground === "none"
+  readonly property bool barShown: config.enabled && config.bar !== "" && barClear
 
   function stepBar(direction) {
     var n = barStyles.length
@@ -386,13 +392,17 @@ Item {
     onExited: if (asked !== root.barWanted) root.syncBar()
   }
 
-  // back to the shell's own bar when the style is dropped
+  // The bar goes see-through for a style, and back to what it was when the
+  // style is dropped.
   function syncBar() {
     if (barProc.running) return
     // the shell's file may not have been read again since our last word
-    if ((shellBar.transparent === true) === barWanted && barProc.asked === barWanted) return
+    if (barClear === barWanted && barProc.asked === barWanted) return
+    if (barWanted && !barClear) config.barWas = barBackground
     barProc.asked = barWanted
-    barProc.command = ["omarchy", "bar", "transparent", barWanted ? "true" : "false"]
+    var to = barWanted ? "none" : (config.barWas === "glassy" ? "glassy" : "opaque")
+    barProc.command = ["sh", "-c", 'omarchy bar background "$1" 2>/dev/null || omarchy bar transparent "$2"',
+                       "sh", to, barWanted ? "true" : "false"]
     barProc.running = true
   }
 
@@ -787,14 +797,66 @@ Item {
   // silenced they are down and shut
   readonly property real slatOpen: hushed ? 0.10 : blindsLevel < 0 ? 0.64 : 0.10 + 0.78 * blindsLevel
 
+  // --- stepping aside --------------------------------------------------------------
+
+  // Omarchy hands the desktop to its video player for the intro of a theme
+  // and for a background that is a video. Its own background steps aside
+  // then, and so does the wall: there is no picture for the light to fall on.
+  //
+  // A plugin is not shown the stock background's state, but the compositor
+  // says when that layer goes and comes back, and the player says whether it
+  // is the one drawing: it is asked then, and once at the start.
+  property bool yielded: false
+
+  Process {
+    id: playerProc
+    command: ["sh", "-c", "owe status 2>/dev/null"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var drawing = false
+        try { drawing = JSON.parse(String(text || "{}")).engine === "renderer" } catch (e) {}
+        root.yielded = drawing
+      }
+    }
+  }
+
+  function askPlayer() {
+    if (playerProc.running) askAgain.restart()
+    else playerProc.running = true
+  }
+
+  // the layer may go a moment before the player has taken over, or after
+  Timer { id: askAgain; interval: 350; onTriggered: root.askPlayer() }
+
+  Connections {
+    target: Hyprland
+    function onRawEvent(event) {
+      if ((event.name === "openlayer" || event.name === "closelayer") && String(event.data).indexOf("background") >= 0) {
+        root.askPlayer()
+        askAgain.restart()
+      }
+    }
+  }
+
   // --- what the rest of the system is doing ------------------------------------
 
   // Do not disturb, as the shell's notifications keep it.
   readonly property bool hushed: {
     if (!config.quiet) return false
+    try { if (JSON.parse(quietFile.text() || "{}").dnd === true) return true } catch (e) {}
     try { return JSON.parse(notifyFile.text() || "{}").dnd === true } catch (e) { return false }
   }
 
+  FileView {
+    id: quietFile
+    path: Quickshell.env("HOME") + "/.local/state/omarchy/notifications/quiet.json"
+    watchChanges: true
+    blockLoading: true
+    printErrors: false
+    onFileChanged: reload()
+  }
+
+  // where Omarchy kept it before 4.5
   FileView {
     id: notifyFile
     path: Quickshell.env("HOME") + "/.local/state/omarchy/notifications.json"
@@ -957,6 +1019,7 @@ Item {
       property bool tree: false        // a tree outside the window
       property string theme: "plaster" // see Themes.js
       property string bar: ""          // the shell's bar over the wall: clear | tint; empty = the shell's own solid bar
+      property string barWas: ""       // the shell's bar background before a style took it over, to give back
       property bool dust: true         // motes floating in the beam
       property bool passingClouds: true // the sun dims as clouds cross it
       property bool windowShadows: false // the desktop's windows cast shadows on the wall
@@ -1112,6 +1175,7 @@ Item {
 
   // whether anything on the wall is moving; a still wall is not redrawn
   readonly property bool animated: {
+    if (yielded) return false
     if (config.pauseWhenCovered && covered) return false
     if (batteryLow) return false
     // a room on the move goes on through the dark, as through a tunnel. A
@@ -1386,7 +1450,7 @@ Item {
       required property var modelData
 
       screen: modelData
-      visible: config.enabled
+      visible: config.enabled && !root.yielded
       anchors { top: true; bottom: true; left: true; right: true }
       color: "black"
       exclusionMode: ExclusionMode.Ignore
@@ -1402,7 +1466,10 @@ Item {
       }
 
       WlrLayershell.namespace: "shades"
-      WlrLayershell.layer: WlrLayer.Background
+      // One layer above Omarchy's own background, which is taken down and put
+      // up again around every intro and would come back on top of a wall
+      // that shared its layer.
+      WlrLayershell.layer: WlrLayer.Bottom
       WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
       // The window glass: whatever is drawn here is cast onto the wall.

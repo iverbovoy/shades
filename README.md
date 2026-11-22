@@ -55,8 +55,7 @@ omarchy-shell shades set longitude 2.35
 ### Requirements
 
 - Omarchy 4 with its Quickshell shell (`omarchy-shell`) on Hyprland. The
-  plugin was written and is used on Omarchy 4.0; it has not been tried on
-  4.5 yet.
+  plugin is used on Omarchy 4.5 and was written on 4.0.
 - `curl`, for the weather. Without it the sky is always clear.
 - `inotify-tools`, to follow a change of theme or background at once.
   Without it a change is noticed within a minute.
@@ -99,6 +98,11 @@ and everything else follow as if you had picked in the Omarchy menu; a theme
 is applied once you stop clicking. Changes made elsewhere are picked up at
 once, and a new background opens over the old one from the middle outward,
 as Omarchy's own does.
+
+Omarchy 4.5 plays an intro when a theme that has one is picked, and can show
+a video as the background. Both are drawn by Omarchy's video player, and the
+wall steps aside for them: it is gone while an intro plays and back when the
+still picture is, and it stays away for as long as the background is a video.
 
 The background keeps its own colours. Out of the light it stands a little
 lower, by day hardly at all and more at night, and the light lifts it from
@@ -164,7 +168,7 @@ created on first change and reloaded when edited.
 | `theme` | one of the themes above, or your own |
 | `windowCount` | how many windows stand in a row, 1 to 4 |
 | `motion` | one of the motions above; empty = a room that stands still |
-| `bar` | the shell's bar over the wall: `clear` (the wall shows through) or `tint` (through a strip of the bar's own colour); empty = the shell's own solid bar. Picking one turns on the bar's transparency in `~/.config/omarchy/shell.json`, dropping it turns that off again |
+| `bar` | the shell's bar over the wall: `clear` (the wall shows through) or `tint` (through a strip of the bar's own colour); empty = the shell's own solid bar. Picking one sets the bar's background to none (`omarchy bar background`), dropping it gives the bar back the background it had |
 
 The file holds more than the panel shows. These are left as they are unless
 you go looking for them, and each is explained beside its default at
