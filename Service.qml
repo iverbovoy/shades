@@ -227,6 +227,7 @@ Item {
   property int picturesLoading: 0  // backgrounds still being read, over all the walls
   signal curtainDown()
   signal curtainUp()
+  signal curtainShut()             // down at once, out of sight
 
   // something has changed that is not to change in sight
   function turn() {
@@ -807,6 +808,19 @@ Item {
   // says when that layer goes and comes back, and the player says whether it
   // is the one drawing: it is asked then, and once at the start.
   property bool yielded: false
+
+  // The wall comes back with its blinds shut, which is close to the bare
+  // background the intro ended on, and they open on the light.
+  onYieldedChanged: {
+    if (yielded || !config.enabled) return
+    curtained = true
+    turning = true
+    curtainShut()
+    backSoon.restart()
+  }
+
+  // once the wall has been drawn again
+  Timer { id: backSoon; interval: 260; onTriggered: raiseSoon.restart() }
 
   Process {
     id: playerProc
@@ -1566,6 +1580,11 @@ Item {
         target: root
         function onCurtainDown() { unshutting.stop(); shutting.start() }
         function onCurtainUp() { shutting.stop(); wall.shut = 1; unshutting.start() }
+        // nor is the background that came meanwhile opened over the old one
+        function onCurtainShut() {
+          shutting.stop(); unshutting.stop(); wall.shut = 1
+          reveal.stop(); wall.wallFade = 1; panel.before = ""
+        }
         function onWallpaperPathChanged() { panel.show(root.wallpaperPath) }
       }
 
