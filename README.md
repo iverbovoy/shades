@@ -7,7 +7,7 @@ under cloud, and at night the moon takes over with its real position and
 phase.
 
 - **The real sky.** The sun and the moon as they stand over your place right
-  now, the weather from Open-Meteo, real eclipses.
+  now, dimmed and softened by the weather from Open-Meteo.
 - **Six themes of the light**, from plain plaster to stained glass and a
   carved screen of stars; one gives way to another behind shut blinds.
 - **Windows as you like them**: one to four in a row, from small panes to
@@ -106,13 +106,9 @@ there. The light reads the picture as a whole: on a dark one more of it lies
 on top so that the patch still shows, on a pale one the shade is set lower to
 leave the light room.
 
-Every Omarchy theme keeps a scene of its own (`perTheme`): the theme of the
-light, its strength, softness and colour, the bar and the rest of the keys
-below are put by when you leave a theme and brought back when you return. A
-theme can bring a scene along for those who have not set one: a `shades.json`
-next to its `colors.toml` with any of `theme`, `bar`, `window`, `brightness`,
-`softness`, `tint`, `windowSize`, `windowCount`, `blindsFollow`, `tree`,
-`trail`, `text`, `textLight`, `motion`.
+Every Omarchy theme keeps a scene of its own: the theme of the light, its
+strength, softness and colour, the windows, the motion and the bar are put by
+when you leave a theme and brought back when you return.
 
 ## Themes
 
@@ -149,54 +145,36 @@ moves is the room under it.
 | `ship` | the patch rises, sinks and leans with the swell |
 | `racer` | a racing car, lap after lap. Every corner turns the car under the sun, so the light comes in at another angle and stays there down the next straight; the corners are long and the patch crosses the wall with them, leaning a little the way the car is pressed. It lifts for the corners and gathers speed out of them. The posts of the catch fence streak across the patch, the gaps between the stands come as flashes, two bridges take the sun for an instant, and in the tunnel its lamps cross the wall one after another until the car comes out into a day too bright for a moment |
 
-While the room travels no tree keeps up with it, and the wall is
-drawn at 30 frames a second or more, 60 in the racing car.
+While the room travels the wall is drawn at 30 frames a second or more, 60
+in the racing car.
 
 ## Settings
 
-`~/.config/shades/config.json` is created on first change and reloaded when
-edited.
+Everything the panel sets is kept in `~/.config/shades/config.json`, which is
+created on first change and reloaded when edited.
 
 | Key | Meaning |
 |-----|---------|
 | `enabled` | show the wall or leave the stock background |
-| `theme` | one of the themes above, or your own |
-| `motion` | one of the motions above; empty = a room that stands still |
-| `latitude`, `longitude` | where the sun is worked out for; empty = the Omarchy weather location, and where none is set, a guess from the time zone (see below) |
-| `brightness` | strength of the sun's and the moon's light; 1 is as the theme has it |
+| `latitude`, `longitude` | where the sun is worked out for; empty = the Omarchy weather location, and where none is set, a guess from the time zone |
+| `brightness` | strength of the sun's and the moon's light; 1 is as the theme has it (25 on the panel's scale) |
 | `softness` | how soft the edges of the shadows are; 1 is as the sky makes them, less is sharper |
-| `tint` | colour of that light: `"#rrggbb"`, or `accent` for the accent of the Omarchy theme; empty = the theme's own |
-| `overcast` | `auto` (from the weather), `on`, `off` |
-| `rain` | drops on the glass when the weather says rain |
-| `passingClouds` | the sun dims now and then under broken cloud |
-| `moon` | `real`, `always` (a full moon every night), `off` |
-| `moonlight` | brightness of a full moon |
-| `eclipses` | during a real solar eclipse the sun dims and the light under the tree turns into crescents |
-| `window` | the shape of the window: `square` or `arch`; empty = as the theme has it |
 | `windowSize` | how large the windows are; 1 is the room as it was built, 3 is glass from floor to ceiling |
-| `windowCount` | how many stand in a row along the side wall, 1 to 4, a pier between each two; more of them are each narrower |
-| `blindsFollow` | `none`, `volume` or `battery`: the blinds stand as open as the volume is up or the battery is full; `none` leaves them two thirds open |
-| `tree` | a tree outside the window |
-| `headlights` | at night a car goes by now and then and the light of its headlamps crosses the wall |
-| `dust` | motes in the beam |
-| `trail` | the wall stays a shade warmer where the patch has already been today |
-| `text`, `lines` | lettering on the glass, and what it says; `{time}` `{date}` `{weather}` `{temp}` `{sky}` are filled in |
-| `textLight` | letters of light instead of letter shadows |
-| `font` | font of the text; empty = the shell font |
-| `windowShadows`, `windowHeight` | the windows of your desktop cast shadows on the wall (off by default: on a tiled desktop they leave little of the light), and how far in front of it they float |
+| `tint` | colour of the light: `"#rrggbb"`, or `accent` for the accent of the Omarchy theme; empty = the theme's own |
+| `theme` | one of the themes above, or your own |
+| `windowCount` | how many windows stand in a row, 1 to 4 |
+| `motion` | one of the motions above; empty = a room that stands still |
 | `bar` | the shell's bar over the wall: `clear` (the wall shows through) or `tint` (through a strip of the bar's own colour); empty = the shell's own solid bar. Picking one turns on the bar's transparency in `~/.config/omarchy/shell.json`, dropping it turns that off again |
-| `layout` | `span`: one wall across all monitors as they are arranged; `each`: a wall per monitor |
-| `reference` | monitor that sets the scale in `span`; empty = the largest |
-| `glass`, `grain` | unevenness of the glass, mottling of the wall |
-| `fps` | frame rate of everything that moves |
-| `pauseWhenCovered` | hold still while windows cover the wall on every monitor |
-| `saveBattery` | on battery the wall moves at 10 frames a second at most and holds still below 20% |
-| `nightlight` | the screen warms from 6500K to 4000K as the real sun sets and cools as it rises (off by default; it starts `hyprsunset` if need be) |
-| `quiet` | the blinds close while notifications are silenced |
-| `perTheme` | every Omarchy theme keeps a scene of its own |
 
-`sceneOf` and `scenes` in the file are the plugin's own notes of those
-scenes.
+The file holds more than the panel shows. These are left as they are unless
+you go looking for them, and each is explained beside its default at
+`JsonAdapter` in [`Service.qml`](Service.qml): the sky (`overcast`, `rain`,
+`passingClouds`, `moon`, `moonlight`, `eclipses`), the window (`window`,
+`blindsFollow`, `glass`), what else can be there (`tree`, `text`, `lines`,
+`textLight`, `font`, `headlights`, `dust`, `trail`, `windowShadows`,
+`windowHeight`, `grain`), the desk (`layout`, `reference`, `fps`,
+`pauseWhenCovered`, `saveBattery`, `nightlight`, `quiet`) and the scenes kept
+for each Omarchy theme (`perTheme`, `sceneOf`, `scenes`).
 
 ## From the terminal
 
@@ -207,15 +185,11 @@ omarchy-shell shades theme noir        # pick a theme; "" lists them
 omarchy-shell shades light 1           # next theme of the light; -1 the previous
 omarchy-shell shades system 1          # next Omarchy theme; -1 the previous
 omarchy-shell shades background 1      # next background of the Omarchy theme; -1 the previous
-omarchy-shell shades set dust false    # any setting from the table above
-omarchy-shell shades flip tree         # turn a switch over
+omarchy-shell shades set brightness 2  # any setting from the file
 omarchy-shell shades get theme         # what a setting is now
+omarchy-shell shades hold              # stop the lift at the next floor, or send it on
 omarchy-shell shades time 8.5          # preview 08:30
 omarchy-shell shades follow            # back to the real time
-omarchy-shell shades preview           # the hour being previewed; negative = the real time
-omarchy-shell shades car               # a car goes by now: its headlights, at night
-omarchy-shell shades hold              # stop the lift at the next floor, or send it on
-omarchy-shell shades eclipse 0.8       # preview a solar eclipse; -1 returns to the real sky
 omarchy-shell shades snapshot /tmp/wall.png
 ```
 
@@ -240,18 +214,16 @@ o.bind("SUPER + CTRL + ALT + SPACE", "Next background", "omarchy-shell -q shades
 
 For the weather the plugin asks [Open-Meteo](https://open-meteo.com) for the
 current conditions at the configured coordinates, rounded to a hundredth of a
-degree, every 15 minutes. That is its only network request, and it is skipped
-when the weather is not used (`overcast` not `auto`, `rain` off and no weather
-placeholder in the text) and when no location is known.
+degree, every 15 minutes. That is its only network request, and it is not
+made for a place that was only guessed.
 
 To hear of a new theme or background it watches a folder of Omarchy's state
-with `inotifywait`. Whether notifications are silenced it reads from the
-shell's own file, for `quiet`; it reads nothing else of them.
+with `inotifywait`.
 
 ## Cost
 
 A still wall costs nothing: it is redrawn only when the light changes. Moving
-things (leaves, dust, rain, a room on the move) redraw it `fps` times a
+things (a room on the move, rain on the glass) redraw it many times a
 second, and each of those frames makes the compositor redraw whatever lies
 over the wall. So by default the wall holds still while windows cover it and
 at night when nothing is lit.

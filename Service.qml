@@ -942,7 +942,7 @@ Item {
 
     JsonAdapter {
       id: config
-      property bool enabled: true
+      property bool enabled: true      // show the wall, or leave the stock background
       // where the sun is worked out for; left empty, the place set for the
       // Omarchy weather widget is used
       property var latitude: null
@@ -976,10 +976,11 @@ Item {
       property var scenes: ({})        // the scenes kept, by Omarchy theme
       property bool text: false        // lettering on the glass: the lines below
       property bool textLight: false   // letters of light instead of letter shadows
+      // what the lettering says; {time} {date} {weather} {temp} {sky} are filled in
       property var lines: ["OMARCHY", "{time}", "{weather}"]
       property string font: ""         // empty = the shell font
-      property int fps: 20
-      property real grain: 0.035
+      property int fps: 20             // frames a second of whatever moves; a room on the move takes more
+      property real grain: 0.035       // mottling of the wall under the picture, 0 = none
       property real glass: 1           // unevenness of the window glass, 0 = perfect
       property string moon: "real"       // "real" | "always" | "off"
       property real moonlight: 0.22      // brightness of a full moon
