@@ -6,7 +6,7 @@
 #   scripts/sheet.sh [out.jpg] [theme ...]
 set -euo pipefail
 
-out=${1:-/tmp/shades-sheet.jpg}
+out=${1:-shades-sheet.jpg}
 shift || true
 config=$HOME/.config/shades/config.json
 work=$(mktemp -d)

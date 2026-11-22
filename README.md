@@ -169,7 +169,10 @@ in the racing car.
 ## Settings
 
 Everything the panel sets is kept in `~/.config/shades/config.json`, which is
-created on first change and reloaded when edited.
+created on first change and reloaded when edited. A file that cannot be read,
+after a slip in an editor, is left as it is: the wall runs on the defaults
+and saves nothing until the file is put right, and `status` and the panel
+say so.
 
 | Key | Meaning |
 |-----|---------|

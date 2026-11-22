@@ -321,6 +321,7 @@ Panel {
               if (!root.service || !root.config) return ""
               var s = root.service, c = root.config
               var parts = []
+              if (s.damaged) parts.push("settings file damaged: nothing is saved")
               if (s.yielded) parts.push("a video is playing: the wall has stepped aside")
               if (s.simHour >= 0) parts.push("previewing " + Qt.formatDateTime(s.now, "HH:mm"))
               if (c.overcast === "on") parts.push("overcast forced")

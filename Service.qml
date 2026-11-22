@@ -111,6 +111,7 @@ Item {
 
   onSimHourChanged: refresh()
   Component.onCompleted: {
+    checkSettings()
     mend()
     askPlayer()
     shownTheme = config.theme
@@ -157,8 +158,27 @@ Item {
     id: saveSoon
     interval: 40
     onTriggered: {
+      // a settings file that cannot be read is left exactly as it is
+      if (root.damaged) return
       root.saved = Date.now()
       configFile.writeAdapter()
+    }
+  }
+
+  // The settings file is there but is not what it should be: a slip of the
+  // hand in an editor, say. The wall then runs on the defaults and writes
+  // nothing, so that whatever the file held can still be put right; once it
+  // reads again it is taken up as usual.
+  property bool damaged: false
+
+  function checkSettings() {
+    var text = String(configFile.text() || "")
+    if (text.trim() === "") { damaged = false; return }
+    try {
+      var read = JSON.parse(text)
+      damaged = read === null || typeof read !== "object" || Array.isArray(read)
+    } catch (e) {
+      damaged = true
     }
   }
 
@@ -201,6 +221,7 @@ Item {
       + (config.nightlight ? ", screen " + warmth + "K" : "")
       + (onBattery ? ", on battery" : "") + (hushed ? ", hushed" : "")
       + (yielded ? ", stepped aside for Omarchy's video" : "")
+      + (damaged ? ". The settings file cannot be read and is left untouched: nothing is saved until it is put right" : "")
   }
 
   // --- theme ----------------------------------------------------------------
@@ -1014,7 +1035,9 @@ Item {
     // our own writing shows as a change too, and read back half written it
     // would undo the settings made since
     onFileChanged: if (!saveSoon.running && Date.now() - root.saved > 400) reload()
-    onLoaded: root.mend()
+    onLoaded: { root.checkSettings(); root.mend() }
+    // not there yet is the first run; there and unreadable is not
+    onLoadFailed: function(error) { root.damaged = error !== FileViewError.FileNotFound }
 
     JsonAdapter {
       id: config
