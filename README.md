@@ -178,8 +178,9 @@ you go looking for them, and each is explained beside its default at
 `blindsFollow`, `glass`), what else can be there (`tree`, `text`, `lines`,
 `textLight`, `font`, `headlights`, `dust`, `trail`, `windowShadows`,
 `windowHeight`, `grain`), the desk (`layout`, `reference`, `fps`,
-`pauseWhenCovered`, `saveBattery`, `nightlight`, `quiet`) and the scenes kept
-for each Omarchy theme (`perTheme`, `sceneOf`, `scenes`).
+`pauseWhenCovered`, `saveBattery`, `nightlight`, `quiet`), the scenes kept
+for each Omarchy theme (`perTheme`, `sceneOf`, `scenes`) and the background
+the bar had before a style took it over (`barWas`).
 
 ## From the terminal
 
