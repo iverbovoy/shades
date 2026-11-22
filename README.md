@@ -101,8 +101,9 @@ as Omarchy's own does.
 
 Omarchy 4.5 plays an intro when a theme that has one is picked, and can show
 a video as the background. Both are drawn by Omarchy's video player, and the
-wall steps aside for them: it is gone while an intro plays and comes back with the
-still picture, its blinds shut at first and then opening on the light, and it stays away for as long as the background is a video.
+wall steps aside for them. It is gone while an intro plays and comes back
+with the still picture, its blinds shut at first and then opening on the
+light; it stays away for as long as the background is a video.
 
 The background keeps its own colours. Out of the light it stands a little
 lower, by day hardly at all and more at night, and the light lifts it from
